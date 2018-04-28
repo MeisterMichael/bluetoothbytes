@@ -304,14 +304,36 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 									public void executeUsing(CoronaRuntime runtime) {
 										LuaState L = runtime.getLuaState();
 										CoronaLua.newEvent(L, "hcModule");
-										L.pushNumber(Double.parseDouble(axisData[0]));
-										L.setField(-2, "x");
-										L.pushNumber(Double.parseDouble(axisData[1]));
-										L.setField(-2, "y");
-										L.pushNumber(Double.parseDouble(axisData [2]));
-										L.setField(-2, "z");
+										// L.pushNumber(Double.parseDouble(axisData[0]));
+										// L.setField(-2, "x");
+										// L.pushNumber(Double.parseDouble(axisData[1]));
+										// L.setField(-2, "y");
+										// L.pushNumber(Double.parseDouble(axisData [2]));
+										// L.setField(-2, "z");
 										L.pushString("data");
 										L.setField(-2, "type");
+
+										L.pushNumber(Double.parseDouble(axisData[0]));
+										L.setField(-2, "accelerometerX");
+										L.pushNumber(Double.parseDouble(axisData[1]));
+										L.setField(-2, "accelerometerY");
+										L.pushNumber(Double.parseDouble(axisData[2]));
+										L.setField(-2, "accelerometerZ");
+
+										L.pushNumber(Double.parseDouble(axisData[6]));
+										L.setField(-2, "angleX");
+										L.pushNumber(Double.parseDouble(axisData[7]));
+										L.setField(-2, "angleY");
+										L.pushNumber(Double.parseDouble(axisData[8]));
+										L.setField(-2, "angleZ");
+
+										L.pushNumber(Double.parseDouble(axisData[3]));
+										L.setField(-2, "angularVelocityX");
+										L.pushNumber(Double.parseDouble(axisData[4]));
+										L.setField(-2, "angularVelocityY");
+										L.pushNumber(Double.parseDouble(axisData[5]));
+										L.setField(-2, "angularVelocityZ");
+
 										try {
 											CoronaLua.dispatchEvent(L, initLis, 1);
 										} catch (Exception e) {
