@@ -237,6 +237,8 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 		@Override
 		public int invoke(LuaState L) {
 			initLis = CoronaLua.newRef(L, 1);
+			final int frequency = ( L.toInteger(2) == 0 ? 500 : L.toInteger(2) ); // default to 1/2 a second
+
 			initL = L;
 			initDispatcher = new CoronaRuntimeTaskDispatcher(L);
 			CoronaEnvironment.getCoronaActivity().runOnUiThread(new Runnable() {
@@ -287,7 +289,7 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 						}
 					}, filter);
 					BluetoothAdapter.getDefaultAdapter().startDiscovery();
-					timer  =  new CountDownTimer(3000, 1000) {
+					timer  =  new CountDownTimer(frequency, 1000) {
 
 						@Override
 						public void onTick(long millisUntilFinished) {
