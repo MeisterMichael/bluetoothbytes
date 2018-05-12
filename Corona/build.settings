@@ -3,7 +3,7 @@
 -- http://docs.coronalabs.com/guide/distribution/buildSettings/index.html
 --
 
-settings = 
+settings =
 {
 	--[[
 	orientation =
@@ -21,10 +21,10 @@ settings =
 	},
     plugins =
     {
-        ["plugin.hcModule"] =
+        ["plugin.bluetoothbytes"] =
         {
                     -- required
-                    publisherId = "tech.scotth",
+                    publisherId = "com.spacekace",
             },
     }
 }
