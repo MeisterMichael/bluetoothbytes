@@ -1,8 +1,8 @@
-local hcModule = require "plugin.hcModule"
+local bluetoothbytes = require "plugin.bluetoothbytes"
 local json = require "json"
 local widget = require( "widget" )
 
-local hcModuleMac = "20:17:03:22:25:10"
+local bluetoothbytesMac = "20:17:03:22:25:10"
 
 --bg
 local bg = display.newRect( display.contentCenterX, display.contentCenterY, display.actualContentWidth, display.actualContentHeight )
@@ -11,7 +11,7 @@ title:setFillColor( 0 )
 
 --request premission for 6.0+
 
-hcModule.init(function ( e )
+bluetoothbytes.init(function ( e )
 	print(json.encode(e))
 end)
 
@@ -24,7 +24,7 @@ connectButton = widget.newButton( {
     label = "Connect",
     onEvent = function ( e )
         if (e.phase == "ended") then
-            hcModule.connect(hcModuleMac)
+            bluetoothbytes.connect(bluetoothbytesMac)
         end
     end
 } )
