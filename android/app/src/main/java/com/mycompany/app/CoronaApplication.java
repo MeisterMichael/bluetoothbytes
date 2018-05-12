@@ -7,6 +7,8 @@
 
 package com.mycompany.app;
 
+import plugin.bluetoothbytes.LuaLoader;
+
 /**
  * Extends the Application class to receive Corona runtime events and to extend the Lua API.
  * <p>
