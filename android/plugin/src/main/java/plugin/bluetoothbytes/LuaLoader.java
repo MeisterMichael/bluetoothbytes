@@ -1,5 +1,6 @@
 package plugin.bluetoothbytes;
 
+import com.ansca.corona.CoronaActivity;
 import com.ansca.corona.CoronaEnvironment;
 import com.ansca.corona.CoronaLua;
 import com.ansca.corona.CoronaRuntime;
@@ -30,18 +31,29 @@ import static android.content.ContentValues.TAG;
 
 public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 
-	public static final String PLUGIN_VERSION = "1.0.5";
+	public static final String PLUGIN_VERSION = "1.0.6";
 
 
 	private List<Integer> mBuffer = new ArrayList<>();
 	private List<String> mResponseBuffer = new ArrayList<>();
 	private ArrayAdapter<String> mResponsesAdapter;
 	private CoronaRuntimeTaskDispatcher initDispatcher = null;
+	private LuaState initL = null;
+	private CoronaActivity coronaActivity = null;
 	Bluetooth bluetooth;
 	public LuaLoader() {
 		CoronaEnvironment.addRuntimeListener(this);
 		System.out.println( "Corona - bluetoothbytes v" + PLUGIN_VERSION + " construct" );
 	}
+
+
+
+	public CoronaRuntimeTaskDispatcher getInitDispatcher() {
+		if ( initDispatcher.isRuntimeUnavailable() ) initDispatcher = new CoronaRuntimeTaskDispatcher(initL);
+		if ( initDispatcher.isRuntimeUnavailable() ) initDispatcher = coronaActivity.getRuntimeTaskDispatcher();
+		return initDispatcher;
+	}
+
 	@Override
 	public int invoke(LuaState L) {
 		// Register this plugin into Lua with the following functions.
@@ -85,9 +97,10 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 		@Override
 		public int invoke(final LuaState L) {
 			final int myRef = CoronaLua.newRef( L, 1 );
-			final LuaState initL = L;
+			initL = L;
 			initDispatcher = new CoronaRuntimeTaskDispatcher(L);
-			bluetooth = new Bluetooth(CoronaEnvironment.getCoronaActivity());
+			coronaActivity = CoronaEnvironment.getCoronaActivity();
+			bluetooth = new Bluetooth(coronaActivity);
 			bluetooth.setDiscoveryCallback(new Bluetooth.DiscoveryCallback() {
 
 				@Override
@@ -113,7 +126,7 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 				public void onDevice(BluetoothDevice mydevice) {
 					final BluetoothDevice device = mydevice;
 					if ( device.getName() != null){
-						initDispatcher.send( new CoronaRuntimeTask() {
+						getInitDispatcher().send( new CoronaRuntimeTask() {
 							@Override
 							public void executeUsing(CoronaRuntime runtime) {
 								LuaState L = runtime.getLuaState();
@@ -152,7 +165,7 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 				public void onPair(BluetoothDevice mydevice) {
 					final BluetoothDevice device = mydevice;
 					if ( device.getName() != null){
-						initDispatcher.send( new CoronaRuntimeTask() {
+						getInitDispatcher().send( new CoronaRuntimeTask() {
 							@Override
 							public void executeUsing(CoronaRuntime runtime) {
 								LuaState L = runtime.getLuaState();
@@ -189,7 +202,7 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 				public void onUnpair(BluetoothDevice mydevice) {
 					final BluetoothDevice device = mydevice;
 					if ( device.getAddress() != null){
-						initDispatcher.send( new CoronaRuntimeTask() {
+						getInitDispatcher().send( new CoronaRuntimeTask() {
 							@Override
 							public void executeUsing(CoronaRuntime runtime) {
 								LuaState L = runtime.getLuaState();
@@ -229,7 +242,7 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 				@Override
 				public void onError(String mymessage) {
 					final String message = mymessage;
-					initDispatcher.send( new CoronaRuntimeTask() {
+					getInitDispatcher().send( new CoronaRuntimeTask() {
 						@Override
 						public void executeUsing(CoronaRuntime runtime) {
 							LuaState L = runtime.getLuaState();
@@ -252,7 +265,7 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 				@Override
 				public void onConnect(BluetoothDevice mydevice) {
 					final BluetoothDevice device = mydevice;
-					initDispatcher.send( new CoronaRuntimeTask() {
+					getInitDispatcher().send( new CoronaRuntimeTask() {
 						@Override
 						public void executeUsing(CoronaRuntime runtime) {
 							LuaState L = runtime.getLuaState();
@@ -290,7 +303,7 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 				public void onDisconnect(BluetoothDevice mydevice, String mymessage) {
 					final BluetoothDevice device = mydevice;
 					final String message = mymessage;
-					initDispatcher.send( new CoronaRuntimeTask() {
+					getInitDispatcher().send( new CoronaRuntimeTask() {
 						@Override
 						public void executeUsing(CoronaRuntime runtime) {
 							LuaState L = runtime.getLuaState();
@@ -329,7 +342,7 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 				@Override
 				public void onMessage(byte[] mybytes) {
 					final byte[] bytes = mybytes;
-					initDispatcher.send( new CoronaRuntimeTask() {
+					getInitDispatcher().send( new CoronaRuntimeTask() {
 						@Override
 						public void executeUsing(CoronaRuntime runtime) {
 
@@ -369,7 +382,7 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 				@Override
 				public void onError(String mymessage) {
 					final String message = mymessage;
-					initDispatcher.send( new CoronaRuntimeTask() {
+					getInitDispatcher().send( new CoronaRuntimeTask() {
 						@Override
 						public void executeUsing(CoronaRuntime runtime) {
 							LuaState L = runtime.getLuaState();
@@ -392,7 +405,7 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 				public void onConnectError(BluetoothDevice mydevice, String mymessage) {
 					final BluetoothDevice device = mydevice;
 					final String message = mymessage;
-					initDispatcher.send( new CoronaRuntimeTask() {
+					getInitDispatcher().send( new CoronaRuntimeTask() {
 						@Override
 						public void executeUsing(CoronaRuntime runtime) {
 							LuaState L = runtime.getLuaState();
