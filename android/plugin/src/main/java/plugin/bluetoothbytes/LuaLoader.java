@@ -30,7 +30,7 @@ import me.aflak.bluetooth.Bluetooth;
 import static android.content.ContentValues.TAG;
 
 public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
-	final String PLUGIN_VERSION = "1.0.4";
+	private String pluginVersion = "1.0.4";
 
 	private List<Integer> mBuffer = new ArrayList<>();
 	private List<String> mResponseBuffer = new ArrayList<>();
@@ -103,7 +103,7 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 							CoronaLua.newEvent(L, "bluetoothbytes");
 							L.pushString("discovery finished");
 							L.setField(-2, "type");
-							L.pushString(PLUGIN_VERSION);
+							L.pushString(pluginVersion);
 							L.setField(-2, "version");
 							try {
 								CoronaLua.dispatchEvent(L, myRef, 1);
@@ -141,7 +141,7 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 								L.setField(-2, "deviceState");
 								L.pushString("device found");
 								L.setField(-2, "type");
-								L.pushString(PLUGIN_VERSION);
+								L.pushString(pluginVersion);
 								L.setField(-2, "version");
 								try {
 									CoronaLua.dispatchEvent(L, myRef, 1);
@@ -181,7 +181,7 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 								L.setField(-2, "deviceState");
 								L.pushString("device paired");
 								L.setField(-2, "type");
-								L.pushString(PLUGIN_VERSION);
+								L.pushString(pluginVersion);
 								L.setField(-2, "version");
 								try {
 									CoronaLua.dispatchEvent(L, myRef, 1);
@@ -224,7 +224,7 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 								L.setField(-2, "deviceState");
 								L.pushString("device unpaired");
 								L.setField(-2, "type");
-								L.pushString(PLUGIN_VERSION);
+								L.pushString(pluginVersion);
 								L.setField(-2, "version");
 								try {
 									CoronaLua.dispatchEvent(L, myRef, 1);
@@ -250,7 +250,7 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 							L.setField(-2, "error");
 							L.pushString("error");
 							L.setField(-2, "type");
-							L.pushString(PLUGIN_VERSION);
+							L.pushString(pluginVersion);
 							L.setField(-2, "version");
 							try {
 								CoronaLua.dispatchEvent(L, myRef, 1);
@@ -291,7 +291,7 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 							L.setField(-2, "deviceState");
 							L.pushString("connected");
 							L.setField(-2, "type");
-							L.pushString(PLUGIN_VERSION);
+							L.pushString(pluginVersion);
 							L.setField(-2, "version");
 							try {
 								CoronaLua.dispatchEvent(L, myRef, 1);
@@ -333,7 +333,7 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 							L.setField(-2, "error");
 							L.pushString("disconnect");
 							L.setField(-2, "type");
-							L.pushString(PLUGIN_VERSION);
+							L.pushString(pluginVersion);
 							L.setField(-2, "version");
 							try {
 								CoronaLua.dispatchEvent(L, myRef, 1);
@@ -376,7 +376,7 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 							L.pushString("bytes");
 							L.setField(-2, "type");
 
-							L.pushString(PLUGIN_VERSION);
+							L.pushString(pluginVersion);
 							L.setField(-2, "version");
 
 							System.out.println("onMessage(byte[] mybytes) getInitDispatcher().send before dispatchEvent");
@@ -405,7 +405,7 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 							L.setField(-2, "error");
 							L.pushString("error");
 							L.setField(-2, "type");
-							L.pushString(PLUGIN_VERSION);
+							L.pushString(pluginVersion);
 							L.setField(-2, "version");
 							try {
 								CoronaLua.dispatchEvent(L, myRef, 1);
@@ -448,7 +448,7 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 							L.setField(-2, "error");
 							L.pushString("connection error");
 							L.setField(-2, "type");
-							L.pushString(PLUGIN_VERSION);
+							L.pushString(pluginVersion);
 							L.setField(-2, "version");
 							try {
 								CoronaLua.dispatchEvent(L, myRef, 1);
