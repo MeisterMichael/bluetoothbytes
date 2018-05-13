@@ -30,12 +30,12 @@ import me.aflak.bluetooth.Bluetooth;
 import static android.content.ContentValues.TAG;
 
 public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
-	final static String PLUGIN_VERSION = "1.0.2";
+	final String PLUGIN_VERSION = "1.0.4";
 
 	private List<Integer> mBuffer = new ArrayList<>();
 	private List<String> mResponseBuffer = new ArrayList<>();
 	private ArrayAdapter<String> mResponsesAdapter;
-	// private CoronaRuntimeTaskDispatcher initDispatcher = null;
+	private CoronaRuntimeTaskDispatcher initDispatcher = null;
 	private CoronaActivity coronaActivity = null;
 	Bluetooth bluetooth;
 	public LuaLoader() {
@@ -75,8 +75,8 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 	}
 
 	public CoronaRuntimeTaskDispatcher getInitDispatcher() {
-		return coronaActivity.getRuntimeTaskDispatcher();
-		// return initDispatcher;
+		// return coronaActivity.getRuntimeTaskDispatcher();
+		return initDispatcher;
 	}
 
 
@@ -89,7 +89,7 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 		public int invoke(final LuaState L) {
 			final int myRef = CoronaLua.newRef( L, 1 );
 			final LuaState initL = L;
-			// initDispatcher = new CoronaRuntimeTaskDispatcher(L);
+			initDispatcher = new CoronaRuntimeTaskDispatcher(L);
 			coronaActivity = CoronaEnvironment.getCoronaActivity();
 			bluetooth = new Bluetooth(coronaActivity);
 			bluetooth.setDiscoveryCallback(new Bluetooth.DiscoveryCallback() {
