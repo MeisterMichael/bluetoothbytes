@@ -31,7 +31,7 @@ import static android.content.ContentValues.TAG;
 
 public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 
-	public static final String PLUGIN_VERSION = "1.0.6";
+	public static final String PLUGIN_VERSION = "1.0.7";
 
 
 	private List<Integer> mBuffer = new ArrayList<>();
@@ -496,16 +496,25 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 			}*/
 
 			// Convert lua table array of ints into bytes
-			int count = L.tableSize(1);
-			L.getTable(1);
+			int count = L.length(1); //L.tableSize(1);
+			System.out.println( "Corona send count " + count );
+
 			byte[] bytes = new byte[count];
-			for( int i = 0; i < count; i++ ) {
-				bytes[i] = (byte) ( L.toInteger( i+1 ) & 0xff );
+			for( int i = 1; i <= count; i++ ) {
+
+				L.rawGet(1,i);
+				int num = L.toInteger( -1 );
+				L.pop(1);
+
+				System.out.println( "Corona send [" + i + "] " + num );
+
+				bytes[i-1] = (byte) ( num & 0xff );
+
+
 			}
 
 
-
-			bluetooth.send( new String( bytes ) );
+			bluetooth.send( bytes );
 
 			return 0;
 
