@@ -320,7 +320,7 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 								L.pushString("connected");
 							}
 							if (device.getBondState() == BluetoothDevice.BOND_BONDING){
-								initL.pushString("connecting");
+								L.pushString("connecting");
 							}
 							if (device.getBondState() == BluetoothDevice.BOND_NONE){
 								L.pushString("not connected");
