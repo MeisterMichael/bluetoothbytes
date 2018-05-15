@@ -31,8 +31,9 @@ import static android.content.ContentValues.TAG;
 
 public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 
-	public static final String PLUGIN_VERSION = "1.0.8";
+	public static final String PLUGIN_VERSION = "1.0.9";
 
+	private String messageFormat = "bytes";
 	private int bufferSize = 512;
 	private List<Integer> mBuffer = new ArrayList<>();
 	private List<String> mResponseBuffer = new ArrayList<>();
@@ -58,7 +59,7 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 	public int invoke(LuaState L) {
 		// Register this plugin into Lua with the following functions.
 		NamedJavaFunction[] luaFunctions = new NamedJavaFunction[] {
-				new init( ), new isEnabled (), new search(), new send(), new setBufferSize(), new enable(), new connect(), new disconnect(), new getDevices(),
+				new init( ), new isEnabled (), new search(), new send(), new setBufferSize(), new setMessageFormat(), new enable(), new connect(), new disconnect(), new getDevices(),
 		};
 		String libName = L.toString( 1 );
 		L.register(libName, luaFunctions);
@@ -350,16 +351,33 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 
 							CoronaLua.newEvent(L, "bluetoothbytes");
 
-							if ( bytes != null && bytes.length > 0 ) {
-								L.newTable(bytes.length, 0);
 
-								for(int i = 0; i < bytes.length; i++ ) {
-									L.pushInteger( (int) (byte) bytes[i] );
-									L.rawSet(-2, i + 1 );
+							if (bytes != null && bytes.length > 0) {
+								if ( messageFormat == "string" ) {
+									char[] chars = new char[bytes.length];
+
+									for (int i = 0; i < bytes.length; i++) {
+										chars[i] = (char) bytes[i];
+									}
+
+									String message = new String(chars);
+
+									L.pushString( message );
+									L.setField(-2, "bytes");
+								} else {
+
+									L.newTable(bytes.length, 0);
+
+									for (int i = 0; i < bytes.length; i++) {
+										L.pushInteger((int) (byte) bytes[i]);
+										L.rawSet(-2, i + 1);
+									}
+
+									L.setField(-2, "bytes");
 								}
-
-								L.setField(-2, "bytes");
 							}
+
+
 
 							L.pushString("bytes");
 							L.setField(-2, "type");
@@ -520,6 +538,7 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 
 		}
 	}
+
 	private class setBufferSize implements NamedJavaFunction {
 		@Override
 		public String getName() {
@@ -534,6 +553,22 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 
 		}
 	}
+
+	private class setMessageFormat implements NamedJavaFunction {
+		@Override
+		public String getName() {
+			return "setMessageFormat";
+		}
+		@Override
+		public int invoke(LuaState L) {
+
+			messageFormat = L.toString(1);
+
+			return 0;
+
+		}
+	}
+
 	private class enable implements NamedJavaFunction {
 		@Override
 		public String getName() {
