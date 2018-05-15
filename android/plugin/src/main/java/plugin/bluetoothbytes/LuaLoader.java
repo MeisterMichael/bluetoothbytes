@@ -31,7 +31,7 @@ import static android.content.ContentValues.TAG;
 
 public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 
-	public static final String PLUGIN_VERSION = "1.0.9";
+	public static final String PLUGIN_VERSION = "1.0.10";
 
 	private String messageFormat = "bytes";
 	private int bufferSize = 512;
@@ -341,8 +341,9 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 				}
 
 				@Override
-				public void onMessage(byte[] mybytes) {
+				public void onMessage( byte[] mybytes, int mycount ) {
 					final byte[] bytes = mybytes;
+					final int count = mycount;
 					getInitDispatcher().send( new CoronaRuntimeTask() {
 						@Override
 						public void executeUsing(CoronaRuntime runtime) {
@@ -352,11 +353,11 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 							CoronaLua.newEvent(L, "bluetoothbytes");
 
 
-							if (bytes != null && bytes.length > 0) {
-								if ( messageFormat == "string" ) {
-									char[] chars = new char[bytes.length];
+							if ( count > 0 ) {
+								if ( messageFormat.equals("string") ) {
+									char[] chars = new char[count];
 
-									for (int i = 0; i < bytes.length; i++) {
+									for (int i = 0; i < count; i++) {
 										chars[i] = (char) bytes[i];
 									}
 
@@ -366,9 +367,9 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 									L.setField(-2, "bytes");
 								} else {
 
-									L.newTable(bytes.length, 0);
+									L.newTable(count, 0);
 
-									for (int i = 0; i < bytes.length; i++) {
+									for (int i = 0; i < count; i++) {
 										L.pushInteger((int) (byte) bytes[i]);
 										L.rawSet(-2, i + 1);
 									}
@@ -548,6 +549,7 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 		public int invoke(LuaState L) {
 
 			bufferSize = L.toInteger(1);
+			System.out.println( "Corona setBufferSize " + bufferSize );
 
 			return 0;
 
@@ -563,6 +565,7 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 		public int invoke(LuaState L) {
 
 			messageFormat = L.toString(1);
+			System.out.println( "Corona setMessageFormat " + messageFormat );
 
 			return 0;
 

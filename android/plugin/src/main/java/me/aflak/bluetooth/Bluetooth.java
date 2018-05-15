@@ -108,26 +108,16 @@ public class Bluetooth {
 
     private class ReceiveThread extends Thread implements Runnable{
         public void run(){
+
+            System.out.println( "Corona ReceiveThread bufferSize: " + bufferSize );
+
             byte[] buf = new byte[bufferSize];//read 100 bytes at a time
             int count;
             try {
                 while ((count = input.read(buf,0, buf.length )) != -1) {
                     if (communicationCallback != null) {
 
-                        if ( count < buf.length ) {
-
-                            byte[] fbuf = new byte[count];
-                            for (int j = 0; j < count; j++) {
-                                fbuf[j] = buf[j];
-                            }
-
-                            communicationCallback.onMessage(fbuf);
-
-                        } else {
-
-                            communicationCallback.onMessage(buf);
-
-                        }
+                        communicationCallback.onMessage(buf,count);
                     }
                 }
             } catch (IOException e) {
@@ -275,7 +265,7 @@ public class Bluetooth {
     public interface CommunicationCallback{
         void onConnect(BluetoothDevice device);
         void onDisconnect(BluetoothDevice device, String message);
-        void onMessage(byte[] bytes);
+        void onMessage(byte[] bytes,int count);
         void onError(String message);
         void onConnectError(BluetoothDevice device, String message);
     }
