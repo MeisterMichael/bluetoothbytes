@@ -31,10 +31,12 @@ import static android.content.ContentValues.TAG;
 
 public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 
-	public static final String PLUGIN_VERSION = "1.0.10";
+	public static final String PLUGIN_VERSION = "1.0.11";
 
 	private String messageFormat = "bytes";
-	private int bufferSize = 512;
+	private int bufferSize = 100;
+	private boolean fillBuffer = false;
+	private int bytesSent = 0;
 	private List<Integer> mBuffer = new ArrayList<>();
 	private List<String> mResponseBuffer = new ArrayList<>();
 	private ArrayAdapter<String> mResponsesAdapter;
@@ -59,7 +61,7 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 	public int invoke(LuaState L) {
 		// Register this plugin into Lua with the following functions.
 		NamedJavaFunction[] luaFunctions = new NamedJavaFunction[] {
-				new init( ), new isEnabled (), new search(), new send(), new setBufferSize(), new setMessageFormat(), new enable(), new connect(), new disconnect(), new getDevices(),
+				new init( ), new isEnabled (), new search(), new send(), new setBufferSize(), new setFillBuffer(), new setMessageFormat(), new enable(), new connect(), new disconnect(), new getDevices(),
 		};
 		String libName = L.toString( 1 );
 		L.register(libName, luaFunctions);
@@ -101,7 +103,7 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 			initL = L;
 			initDispatcher = new CoronaRuntimeTaskDispatcher(L);
 			coronaActivity = CoronaEnvironment.getCoronaActivity();
-			bluetooth = new Bluetooth(coronaActivity,bufferSize);
+			bluetooth = new Bluetooth(coronaActivity,bufferSize,fillBuffer);
 			bluetooth.setDiscoveryCallback(new Bluetooth.DiscoveryCallback() {
 
 				@Override
@@ -350,6 +352,13 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 
 							LuaState L = runtime.getLuaState();
 
+
+							//if( bytesSent > 1000 ) {
+							//	System.out.println("trigger gc");
+							//	Runtime.getRuntime().gc();
+							//	bytesSent = 0;
+							//}
+
 							CoronaLua.newEvent(L, "bluetoothbytes");
 
 
@@ -358,27 +367,28 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 									char[] chars = new char[count];
 
 									for (int i = 0; i < count; i++) {
-										chars[i] = (char) bytes[i];
+										chars[i] = (char) (short) bytes[i];
 									}
+
 
 									String message = new String(chars);
 
 									L.pushString( message );
 									L.setField(-2, "bytes");
+
 								} else {
 
 									L.newTable(count, 0);
 
 									for (int i = 0; i < count; i++) {
-										L.pushInteger((int) (byte) bytes[i]);
+										L.pushInteger((int) bytes[i]);
 										L.rawSet(-2, i + 1);
 									}
 
 									L.setField(-2, "bytes");
+
 								}
 							}
-
-
 
 							L.pushString("bytes");
 							L.setField(-2, "type");
@@ -390,8 +400,12 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 							try {
 								CoronaLua.dispatchEvent(L, myRef, 1);
 							} catch (Exception e) {
+								System.out.println("catch Exception e start");
 								e.printStackTrace();
+								System.out.println("catch Exception e done");
 							}
+
+							//bytesSent += count;
 						}
 					} );
 
@@ -550,6 +564,22 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 
 			bufferSize = L.toInteger(1);
 			System.out.println( "Corona setBufferSize " + bufferSize );
+
+			return 0;
+
+		}
+	}
+
+	private class setFillBuffer implements NamedJavaFunction {
+		@Override
+		public String getName() {
+			return "setFillBuffer";
+		}
+		@Override
+		public int invoke(LuaState L) {
+
+			fillBuffer = L.toBoolean(1);
+			System.out.println( "Corona setFillBuffer " + fillBuffer );
 
 			return 0;
 

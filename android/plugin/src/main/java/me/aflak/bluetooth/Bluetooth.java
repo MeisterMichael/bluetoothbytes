@@ -35,16 +35,18 @@ public class Bluetooth {
 
     private Activity activity;
 
-    private int bufferSize = 512;
+    private int bufferSize = 100;
+    private boolean fillBuffer = false;
 
     public Bluetooth(Activity activity){
         this.activity=activity;
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     }
 
-    public Bluetooth(Activity activity, int bufferSize){
+    public Bluetooth(Activity activity, int bufferSize, boolean fillBuffer){
         this.activity=activity;
         this.bufferSize = bufferSize;
+        this.fillBuffer = fillBuffer;
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     }
 
@@ -112,13 +114,46 @@ public class Bluetooth {
             System.out.println( "Corona ReceiveThread bufferSize: " + bufferSize );
 
             byte[] buf = new byte[bufferSize];//read 100 bytes at a time
-            int count;
-            try {
-                while ((count = input.read(buf,0, buf.length )) != -1) {
-                    if (communicationCallback != null) {
 
-                        communicationCallback.onMessage(buf,count);
+            int bytesRead;
+            int bytesUsed = 0;
+
+            try {
+
+
+                if ( fillBuffer ) {
+
+                    while ( ( bytesRead = input.read( buf, bytesUsed, (buf.length-bytesUsed) ) ) != -1 ) {
+                        bytesUsed += bytesRead;
+
+                        if( bytesUsed == bufferSize ) {
+
+                            if ( communicationCallback != null ) {
+                                communicationCallback.onMessage(buf,bytesUsed);
+                            }
+
+                            bytesUsed = 0;
+                        }
                     }
+
+                    if (communicationCallback != null && bytesUsed > 0) {
+
+                        communicationCallback.onMessage(buf,bytesUsed);
+                    }
+
+                } else {
+
+
+                    while ((bytesRead = input.read(buf,0, buf.length )) != -1) {
+
+                        if (communicationCallback != null) {
+
+                            communicationCallback.onMessage(buf, bytesRead);
+                        }
+
+                    }
+
+
                 }
             } catch (IOException e) {
                 connected=false;
