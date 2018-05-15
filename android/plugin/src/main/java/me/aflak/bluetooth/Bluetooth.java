@@ -35,8 +35,16 @@ public class Bluetooth {
 
     private Activity activity;
 
+    private int bufferSize = 512;
+
     public Bluetooth(Activity activity){
         this.activity=activity;
+        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+    }
+
+    public Bluetooth(Activity activity, int bufferSize){
+        this.activity=activity;
+        this.bufferSize = bufferSize;
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     }
 
@@ -90,6 +98,7 @@ public class Bluetooth {
     public void send(byte[] bytes){
         try {
             out.write(bytes);
+            out.flush();
         } catch (IOException e) {
             connected=false;
             if(communicationCallback!=null)
@@ -99,7 +108,7 @@ public class Bluetooth {
 
     private class ReceiveThread extends Thread implements Runnable{
         public void run(){
-            byte[] buf = new byte[100];//read 100 bytes at a time
+            byte[] buf = new byte[bufferSize];//read 100 bytes at a time
             int count;
             try {
                 while ((count = input.read(buf,0, buf.length )) != -1) {
