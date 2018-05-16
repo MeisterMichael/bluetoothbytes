@@ -31,7 +31,7 @@ import static android.content.ContentValues.TAG;
 
 public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 
-	public static final String PLUGIN_VERSION = "1.0.12";
+	public static final String PLUGIN_VERSION = "1.0.13";
 
 	private String messageFormat = "bytes";
 	private int bufferSize = 100;
@@ -345,11 +345,12 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 					final byte[] bytes = mybytes;
 					final int count = mycount;
 
-					CoronaEnvironment.getCoronaActivity().runOnUiThread(new Runnable()                {
+					CoronaRuntimeTask task = new CoronaRuntimeTask() {
 						@Override
-						public void run() {
+						public void executeUsing(CoronaRuntime runtime) {
+							LuaState L = runtime.getLuaState();
 
-							CoronaLua.newEvent(initL, "bluetoothbytes");
+							CoronaLua.newEvent(L, "bluetoothbytes");
 
 							if ( count > 0 ) {
 								if ( messageFormat.equals("string") ) {
@@ -362,41 +363,43 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 
 									String message = new String(chars);
 
-									initL.pushString( message );
-									initL.setField(-2, "bytes");
+									L.pushString( message );
+									L.setField(-2, "bytes");
 
 								} else {
 
-									initL.newTable(count, 0);
+									L.newTable(count, 0);
 
 									for (int i = 0; i < count; i++) {
-										initL.pushInteger((int) bytes[i]);
-										initL.rawSet(-2, i + 1);
+										L.pushInteger((int) bytes[i]);
+										L.rawSet(-2, i + 1);
 									}
 
-									initL.setField(-2, "bytes");
+									L.setField(-2, "bytes");
 
 								}
 							}
 
-							initL.pushString("bytes");
-							initL.setField(-2, "type");
+							L.pushString("bytes");
+							L.setField(-2, "type");
 
 
-							initL.pushString(PLUGIN_VERSION);
-							initL.setField(-2, "version");
+							L.pushString(PLUGIN_VERSION);
+							L.setField(-2, "version");
 
 
 							try {
-								// CoronaLua.dispatchRuntimeEvent(initL, 0);
-								CoronaLua.dispatchEvent(initL, myRef, 0);
+								CoronaLua.dispatchEvent(L, myRef, 0);
 								// CoronaLua.deleteRef(L, fListener);
 							} catch(Exception ex) {
 								ex.printStackTrace();
 							}
 
 						}
-					});
+					};
+
+					getInitDispatcher().send(task);
+
 
 				}
 
