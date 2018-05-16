@@ -31,7 +31,7 @@ import static android.content.ContentValues.TAG;
 
 public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 
-	public static final String PLUGIN_VERSION = "1.0.11";
+	public static final String PLUGIN_VERSION = "1.0.12";
 
 	private String messageFormat = "bytes";
 	private int bufferSize = 100;
@@ -41,7 +41,6 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 	private List<String> mResponseBuffer = new ArrayList<>();
 	private ArrayAdapter<String> mResponsesAdapter;
 	private CoronaRuntimeTaskDispatcher initDispatcher = null;
-	private LuaState initL = null;
 	private CoronaActivity coronaActivity = null;
 	Bluetooth bluetooth;
 	public LuaLoader() {
@@ -52,8 +51,7 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 
 
 	public CoronaRuntimeTaskDispatcher getInitDispatcher() {
-		if ( initDispatcher.isRuntimeUnavailable() ) initDispatcher = new CoronaRuntimeTaskDispatcher(initL);
-		if ( initDispatcher.isRuntimeUnavailable() ) initDispatcher = coronaActivity.getRuntimeTaskDispatcher();
+		// if ( initDispatcher.isRuntimeUnavailable() ) initDispatcher = coronaActivity.getRuntimeTaskDispatcher();
 		return initDispatcher;
 	}
 
@@ -98,17 +96,17 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 			return "init";
 		}
 		@Override
-		public int invoke(final LuaState L) {
-			final int myRef = CoronaLua.newRef( L, 1 );
-			initL = L;
-			initDispatcher = new CoronaRuntimeTaskDispatcher(L);
-			coronaActivity = CoronaEnvironment.getCoronaActivity();
-			bluetooth = new Bluetooth(coronaActivity,bufferSize,fillBuffer);
+		public int invoke(final LuaState initL) {
+			final int myRef = CoronaLua.newRef( initL, 1 );
+			initDispatcher = new CoronaRuntimeTaskDispatcher(initL);
+			bluetooth = new Bluetooth(CoronaEnvironment.getCoronaActivity(),bufferSize,fillBuffer);
+
+
 			bluetooth.setDiscoveryCallback(new Bluetooth.DiscoveryCallback() {
 
 				@Override
 				public void onFinish() {
-					initDispatcher.send( new CoronaRuntimeTask() {
+					getInitDispatcher().send( new CoronaRuntimeTask() {
 						@Override
 						public void executeUsing(CoronaRuntime runtime) {
 							LuaState L = runtime.getLuaState();
@@ -346,21 +344,12 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 				public void onMessage( byte[] mybytes, int mycount ) {
 					final byte[] bytes = mybytes;
 					final int count = mycount;
-					getInitDispatcher().send( new CoronaRuntimeTask() {
+
+					CoronaEnvironment.getCoronaActivity().runOnUiThread(new Runnable()                {
 						@Override
-						public void executeUsing(CoronaRuntime runtime) {
+						public void run() {
 
-							LuaState L = runtime.getLuaState();
-
-
-							//if( bytesSent > 1000 ) {
-							//	System.out.println("trigger gc");
-							//	Runtime.getRuntime().gc();
-							//	bytesSent = 0;
-							//}
-
-							CoronaLua.newEvent(L, "bluetoothbytes");
-
+							CoronaLua.newEvent(initL, "bluetoothbytes");
 
 							if ( count > 0 ) {
 								if ( messageFormat.equals("string") ) {
@@ -373,42 +362,41 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 
 									String message = new String(chars);
 
-									L.pushString( message );
-									L.setField(-2, "bytes");
+									initL.pushString( message );
+									initL.setField(-2, "bytes");
 
 								} else {
 
-									L.newTable(count, 0);
+									initL.newTable(count, 0);
 
 									for (int i = 0; i < count; i++) {
-										L.pushInteger((int) bytes[i]);
-										L.rawSet(-2, i + 1);
+										initL.pushInteger((int) bytes[i]);
+										initL.rawSet(-2, i + 1);
 									}
 
-									L.setField(-2, "bytes");
+									initL.setField(-2, "bytes");
 
 								}
 							}
 
-							L.pushString("bytes");
-							L.setField(-2, "type");
+							initL.pushString("bytes");
+							initL.setField(-2, "type");
 
 
-							L.pushString(PLUGIN_VERSION);
-							L.setField(-2, "version");
+							initL.pushString(PLUGIN_VERSION);
+							initL.setField(-2, "version");
+
 
 							try {
-								CoronaLua.dispatchEvent(L, myRef, 1);
-							} catch (Exception e) {
-								System.out.println("catch Exception e start");
-								e.printStackTrace();
-								System.out.println("catch Exception e done");
+								// CoronaLua.dispatchRuntimeEvent(initL, 0);
+								CoronaLua.dispatchEvent(initL, myRef, 0);
+								// CoronaLua.deleteRef(L, fListener);
+							} catch(Exception ex) {
+								ex.printStackTrace();
 							}
 
-							//bytesSent += count;
 						}
-					} );
-
+					});
 
 				}
 
