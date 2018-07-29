@@ -24,6 +24,9 @@ import android.os.ParcelUuid;
 import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import java.lang.reflect.Method;
 import me.aflak.bluetooth.Bluetooth;
 
@@ -31,7 +34,7 @@ import static android.content.ContentValues.TAG;
 
 public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 
-	public static final String PLUGIN_VERSION = "1.0.14";
+	public static final String PLUGIN_VERSION = "1.0.15";
 
 	private String messageFormat = "bytes";
 	private int bufferSize = 100;
@@ -99,7 +102,93 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 		public int invoke(final LuaState initL) {
 			final int myRef = CoronaLua.newRef( initL, 1 );
 			initDispatcher = new CoronaRuntimeTaskDispatcher(initL);
-			bluetooth = new Bluetooth(CoronaEnvironment.getCoronaActivity(),bufferSize,fillBuffer);
+
+			final Handler mHandler = new Handler() {
+
+				@Override
+				public void handleMessage(Message msg) {
+					switch (msg.what) {
+						case 1:
+							final byte[] bytes		= msg.getData().getByteArray("bytes");
+							final int count				= msg.getData().getInt("length");
+							final float timestamp	= msg.getData().getFloat("timestamp");
+
+							System.out.print( "bluetoothbytes onMessage bytes (" + count + " / " + bytes.length + "): [" );
+							for (int i = 0; i < count; i++) {
+								if( i > 0 ) System.out.print( "," );
+								System.out.print( "" + bytes[i] );
+							}
+							System.out.println("]");
+
+							CoronaRuntimeTask task = new CoronaRuntimeTask() {
+								@Override
+								public void executeUsing(CoronaRuntime runtime) {
+									LuaState L = runtime.getLuaState();
+
+									CoronaLua.newEvent(L, "bluetoothbytes");
+
+									if ( count > 0 ) {
+										if ( messageFormat.equals("string") ) {
+											char[] chars = new char[count];
+
+											for (int i = 0; i < count; i++) {
+												chars[i] = (char) (short) bytes[i];
+											}
+
+
+											String message = new String(chars);
+
+											L.pushString( message );
+											L.setField(-2, "bytes");
+
+										} else {
+
+											L.newTable(count, 0);
+
+
+
+											System.out.print( "bluetoothbytes onMessage bytes (" + count + " / " + bytes.length + "): [" );
+											for (int i = 0; i < count; i++) {
+												if( i > 0 ) System.out.print( "," );
+												System.out.print( "" + bytes[i] );
+											}
+											System.out.println("]");
+
+											for (int i = 0; i < count; i++) {
+												L.pushInteger((int) bytes[i]);
+												L.rawSet(-2, i + 1);
+											}
+
+											L.setField(-2, "bytes");
+
+										}
+									}
+
+									L.pushString("bytes");
+									L.setField(-2, "type");
+
+
+									L.pushString(PLUGIN_VERSION);
+									L.setField(-2, "version");
+
+
+									try {
+										CoronaLua.dispatchEvent(L, myRef, 0);
+										// CoronaLua.deleteRef(L, fListener);
+									} catch(Exception ex) {
+										ex.printStackTrace();
+									}
+
+								}
+							};
+
+							getInitDispatcher().send(task);
+
+					}
+				}
+			};
+
+			bluetooth = new Bluetooth(CoronaEnvironment.getCoronaActivity(),mHandler,bufferSize,fillBuffer);
 
 
 			bluetooth.setDiscoveryCallback(new Bluetooth.DiscoveryCallback() {

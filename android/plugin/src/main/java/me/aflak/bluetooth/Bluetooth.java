@@ -8,10 +8,13 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -26,27 +29,32 @@ public class Bluetooth {
     private BluetoothAdapter bluetoothAdapter;
     private BluetoothSocket socket;
     private BluetoothDevice device, devicePair;
-    private BufferedInputStream input;
+    private BufferedInputStream bufferedInput;
+    private InputStream input;
     private OutputStream out;
 
     private boolean connected=false;
     private CommunicationCallback communicationCallback=null;
     private DiscoveryCallback discoveryCallback=null;
 
+		private final Handler mHandler;
+
     private Activity activity;
 
     private int bufferSize = 100;
     private boolean fillBuffer = false;
 
-    public Bluetooth(Activity activity){
+    public Bluetooth(Activity activity, Handler mHandler){
         this.activity=activity;
+        this.mHandler = mHandler;
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     }
 
-    public Bluetooth(Activity activity, int bufferSize, boolean fillBuffer){
+    public Bluetooth(Activity activity, Handler mHandler, int bufferSize, boolean fillBuffer){
         this.activity=activity;
         this.bufferSize = bufferSize;
         this.fillBuffer = fillBuffer;
+				this.mHandler = mHandler;
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     }
 
@@ -113,53 +121,41 @@ public class Bluetooth {
 
             System.out.println( "Corona ReceiveThread bufferSize: " + bufferSize );
 
-            byte[] buf = new byte[bufferSize];//read 100 bytes at a time
+						byte[] tempInputBuffer = new byte[bufferSize];
+						int acceptedLen = 0;
 
-            int bytesRead;
-            int bytesUsed = 0;
+						while (true) {
 
-            try {
+							try {
 
+								acceptedLen = input.read(tempInputBuffer);
 
-                if ( fillBuffer ) {
+								if ( acceptedLen > 0 ) {
 
-                    while ( ( bytesRead = input.read( buf, bytesUsed, (buf.length-bytesUsed) ) ) != -1 ) {
-                        bytesUsed += bytesRead;
+									byte[] bytesRead = new byte[acceptedLen];
+									for (int i = 0; i < acceptedLen; i++) bytesRead[i] = tempInputBuffer[i];
 
-                        if( bytesUsed == bufferSize ) {
+									Message msg = mHandler.obtainMessage(1);
+									Bundle bundle = new Bundle();
+									bundle.putByteArray("bytes", bytesRead);
+									bundle.putInt("length", acceptedLen);
+									bundle.putFloat("timestamp", System.currentTimeMillis() / 100.0f );
+									msg.setData(bundle);
+									mHandler.sendMessage(msg);
 
-                            if ( communicationCallback != null ) {
-                                communicationCallback.onMessage(buf,bytesUsed);
-                            }
+									// if (communicationCallback != null) {
+									// 	communicationCallback.onMessage(buf, bytesRead);
+									// }
 
-                            bytesUsed = 0;
-                        }
-                    }
+								}
 
-                    if (communicationCallback != null && bytesUsed > 0) {
-
-                        communicationCallback.onMessage(buf,bytesUsed);
-                    }
-
-                } else {
-
-
-                    while ((bytesRead = input.read(buf,0, buf.length )) != -1) {
-
-                        if (communicationCallback != null) {
-
-                            communicationCallback.onMessage(buf, bytesRead);
-                        }
-
-                    }
-
-
-                }
-            } catch (IOException e) {
-                connected=false;
-                if (communicationCallback != null)
-                    communicationCallback.onDisconnect(device, e.getMessage());
-            }
+							} catch (IOException e) {
+								connected=false;
+								if (communicationCallback != null)
+										communicationCallback.onDisconnect(device, e.getMessage());
+								break;
+							}
+						}
         }
     }
 
@@ -180,7 +176,8 @@ public class Bluetooth {
             try {
                 socket.connect();
                 out = socket.getOutputStream();
-                input = new BufferedInputStream(socket.getInputStream());
+								input = socket.getInputStream();
+                bufferedInput = new BufferedInputStream(input);
                 connected=true;
 
                 new ReceiveThread().start();
