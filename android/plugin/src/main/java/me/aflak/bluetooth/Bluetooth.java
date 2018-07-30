@@ -307,7 +307,7 @@ public class Bluetooth {
     public interface CommunicationCallback{
         void onConnect(BluetoothDevice device);
         void onDisconnect(BluetoothDevice device, String message);
-        void onMessage(byte[] bytes,int count);
+        void onMessage(byte[] bytes);
         void onError(String message);
         void onConnectError(BluetoothDevice device, String message);
     }
