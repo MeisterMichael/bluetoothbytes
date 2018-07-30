@@ -27,6 +27,7 @@ import android.bluetooth.BluetoothDevice;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.Looper;
 import java.lang.reflect.Method;
 import me.aflak.bluetooth.Bluetooth;
 
@@ -103,6 +104,7 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 			final int myRef = CoronaLua.newRef( initL, 1 );
 			initDispatcher = new CoronaRuntimeTaskDispatcher(initL);
 
+			// Looper.prepare()
 			final Handler mHandler = new Handler(Looper.getMainLooper()) {
 
 				@Override
@@ -110,11 +112,10 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 					switch (msg.what) {
 						case 1:
 							final byte[] bytes		= msg.getData().getByteArray("bytes");
-							final int count				= msg.getData().getInt("length");
 							final float timestamp	= msg.getData().getFloat("timestamp");
 
-							System.out.print( "bluetoothbytes onMessage bytes (" + count + " / " + bytes.length + "): [" );
-							for (int i = 0; i < count; i++) {
+							System.out.print( "bluetoothbytes onMessage bytes (" + bytes.length + "): [" );
+							for (int i = 0; i < bytes.length; i++) {
 								if( i > 0 ) System.out.print( "," );
 								System.out.print( "" + bytes[i] );
 							}
@@ -127,11 +128,11 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 
 									CoronaLua.newEvent(L, "bluetoothbytes");
 
-									if ( count > 0 ) {
+									if ( bytes.length > 0 ) {
 										if ( messageFormat.equals("string") ) {
 											char[] chars = new char[count];
 
-											for (int i = 0; i < count; i++) {
+											for (int i = 0; i < bytes.length; i++) {
 												chars[i] = (char) (short) bytes[i];
 											}
 
@@ -143,18 +144,18 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 
 										} else {
 
-											L.newTable(count, 0);
+											L.newTable(bytes.length, 0);
 
 
 
-											System.out.print( "bluetoothbytes onMessage bytes (" + count + " / " + bytes.length + "): [" );
-											for (int i = 0; i < count; i++) {
+											System.out.print( "bluetoothbytes onMessage bytes (" + bytes.length + "): [" );
+											for (int i = 0; i < bytes.length; i++) {
 												if( i > 0 ) System.out.print( "," );
 												System.out.print( "" + bytes[i] );
 											}
 											System.out.println("]");
 
-											for (int i = 0; i < count; i++) {
+											for (int i = 0; i < bytes.length; i++) {
 												L.pushInteger((int) bytes[i]);
 												L.rawSet(-2, i + 1);
 											}
@@ -430,12 +431,11 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 				}
 
 				@Override
-				public void onMessage( byte[] mybytes, int mycount ) {
+				public void onMessage( byte[] mybytes ) {
 					final byte[] bytes = mybytes;
-					final int count = mycount;
 
-					System.out.print( "bluetoothbytes onMessage mybytes (" + count + " / " + mybytes.length + "): [" );
-					for (int i = 0; i < count; i++) {
+					System.out.print( "bluetoothbytes onMessage mybytes  (" + mybytes.length + " / " + bytes.length + "): [" );
+					for (int i = 0; i < mybytes.length; i++) {
 						if( i > 0 ) System.out.print( "," );
 						System.out.print( "" + mybytes[i] );
 					}
@@ -448,11 +448,11 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 
 							CoronaLua.newEvent(L, "bluetoothbytes");
 
-							if ( count > 0 ) {
+							if ( mybytes.length > 0 ) {
 								if ( messageFormat.equals("string") ) {
-									char[] chars = new char[count];
+									char[] chars = new char[mybytes.length];
 
-									for (int i = 0; i < count; i++) {
+									for (int i = 0; i < mybytes.length; i++) {
 										chars[i] = (char) (short) bytes[i];
 									}
 
@@ -464,18 +464,18 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 
 								} else {
 
-									L.newTable(count, 0);
+									L.newTable(mybytes.length, 0);
 
 
 
-									System.out.print( "bluetoothbytes onMessage bytes (" + count + " / " + bytes.length + "): [" );
-									for (int i = 0; i < count; i++) {
+									System.out.print( "bluetoothbytes onMessage bytes (" + mybytes.length + " / " + bytes.length + "): [" );
+									for (int i = 0; i < mybytes.length; i++) {
 										if( i > 0 ) System.out.print( "," );
 										System.out.print( "" + bytes[i] );
 									}
 									System.out.println("]");
 
-									for (int i = 0; i < count; i++) {
+									for (int i = 0; i < mybytes.length; i++) {
 										L.pushInteger((int) bytes[i]);
 										L.rawSet(-2, i + 1);
 									}

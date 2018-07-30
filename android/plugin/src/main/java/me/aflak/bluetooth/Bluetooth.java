@@ -143,8 +143,18 @@ public class Bluetooth {
 									msg.setData(bundle);
 									mHandler.sendMessage(msg);
 
+									// final byte[] mbuf = buf;
+									// final int mbytesRead = bytesRead;
+									// Thread thread = new Thread(new Runnable() {
+									// 	@Override
+									// 	public void run() {
+									// 		communicationCallback.onMessage(bytesRead);
+									// 	}
+									// });
+									// thread.start();
+
 									// if (communicationCallback != null) {
-									// 	communicationCallback.onMessage(buf, bytesRead);
+									// 	communicationCallback.onMessage(bytesRead);
 									// }
 
 								}
