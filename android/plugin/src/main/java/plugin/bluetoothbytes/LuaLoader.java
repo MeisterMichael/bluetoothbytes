@@ -168,6 +168,8 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 									L.pushString("bytes");
 									L.setField(-2, "type");
 
+									L.pushFloat(timestamp)
+									L.setField(-2,"timestamp")
 
 									L.pushString(PLUGIN_VERSION);
 									L.setField(-2, "version");
