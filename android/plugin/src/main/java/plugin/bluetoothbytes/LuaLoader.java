@@ -34,7 +34,7 @@ import static android.content.ContentValues.TAG;
 
 public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 
-	public static final String PLUGIN_VERSION = "1.0.15";
+	public static final String PLUGIN_VERSION = "1.0.16";
 
 	private String messageFormat = "bytes";
 	private int bufferSize = 100;
@@ -103,7 +103,7 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 			final int myRef = CoronaLua.newRef( initL, 1 );
 			initDispatcher = new CoronaRuntimeTaskDispatcher(initL);
 
-			final Handler mHandler = new Handler() {
+			final Handler mHandler = new Handler(Looper.getMainLooper()) {
 
 				@Override
 				public void handleMessage(Message msg) {
