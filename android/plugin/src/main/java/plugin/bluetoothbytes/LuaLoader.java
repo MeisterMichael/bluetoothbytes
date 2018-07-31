@@ -35,7 +35,7 @@ import static android.content.ContentValues.TAG;
 
 public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 
-	public static final String PLUGIN_VERSION = "1.0.17";
+	public static final String PLUGIN_VERSION = "1.0.18";
 
 	private String messageFormat = "bytes";
 	private int bufferSize = 100;
@@ -112,7 +112,7 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 					switch (msg.what) {
 						case 1:
 							final byte[] bytes		= msg.getData().getByteArray("bytes");
-							final float timestamp	= msg.getData().getFloat("timestamp");
+							final double timestamp	= msg.getData().getDouble("timestamp");
 
 							// System.out.print( "bluetoothbytes onMessage bytes (" + bytes.length + "): [" );
 							// for (int i = 0; i < bytes.length; i++) {
@@ -168,7 +168,7 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 									L.pushString("bytes");
 									L.setField(-2, "type");
 
-									L.pushNumber(timestamp);
+									L.pushNumber( timestamp );
 									L.setField(-2,"timestamp");
 
 									L.pushString(PLUGIN_VERSION);

@@ -123,12 +123,14 @@ public class Bluetooth {
 
 						byte[] tempInputBuffer = new byte[bufferSize];
 						int acceptedLen = 0;
+						double timestamp = 0.0;
 
 						while (true) {
 
 							try {
 
 								acceptedLen = input.read(tempInputBuffer);
+								timestamp = ( (double) System.currentTimeMillis() ) / 100.0;
 
 								if ( acceptedLen > 0 ) {
 
@@ -139,7 +141,7 @@ public class Bluetooth {
 									Bundle bundle = new Bundle();
 									bundle.putByteArray("bytes", bytesRead);
 									bundle.putInt("length", acceptedLen);
-									bundle.putFloat("timestamp", System.currentTimeMillis() / 100.0f );
+									bundle.putDouble("timestamp", timestamp );
 									msg.setData(bundle);
 									mHandler.sendMessage(msg);
 
