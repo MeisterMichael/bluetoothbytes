@@ -130,7 +130,7 @@ public class Bluetooth {
 							try {
 
 								acceptedLen = input.read(tempInputBuffer);
-								timestamp = ( (double) System.currentTimeMillis() ) / 100.0;
+								timestamp = ( (double) System.currentTimeMillis() ) / 1000.0;
 
 								if ( acceptedLen > 0 ) {
 
