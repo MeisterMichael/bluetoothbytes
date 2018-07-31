@@ -35,7 +35,7 @@ import static android.content.ContentValues.TAG;
 
 public class LuaLoader implements JavaFunction, CoronaRuntimeListener {
 
-	public static final String PLUGIN_VERSION = "1.0.18";
+	public static final String PLUGIN_VERSION = "1.0.19";
 
 	private String messageFormat = "bytes";
 	private int bufferSize = 100;
